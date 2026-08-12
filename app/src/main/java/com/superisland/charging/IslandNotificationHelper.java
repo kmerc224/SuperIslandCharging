@@ -164,18 +164,12 @@ public class IslandNotificationHelper {
                 "停止", stopPendingIntent).build();
         actions.putParcelable("miui.focus.action_stop", stopAction);
 
-        // 添加超级岛扩展参数
-        // 按照小米官方文档：
-        // 1. 使用 addExtras 添加图片和Action的Bundle（Parcelable数据）
-        Bundle extras = new Bundle();
-        extras.putBundle(EXTRA_MIUI_FOCUS_PICS, pics);
-        extras.putBundle(EXTRA_MIUI_FOCUS_ACTIONS, actions);
-        builder.addExtras(extras);
-
         Notification notification = builder.build();
 
-        // 2. 直接在 notification.extras 中放入JSON字符串参数
+        // 在 notification.extras 中放入超级岛扩展参数
         notification.extras.putString(EXTRA_MIUI_FOCUS_PARAM, islandParams);
+        notification.extras.putBundle(EXTRA_MIUI_FOCUS_PICS, pics);
+        notification.extras.putBundle(EXTRA_MIUI_FOCUS_ACTIONS, actions);
 
         return notification;
     }

@@ -4,7 +4,6 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.os.Process;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -29,7 +28,7 @@ public class ShizukuShellService extends Service {
             // 安全检查：验证调用者UID
             int callingUid = Binder.getCallingUid();
             // Shizuku 运行在 shell uid (2000) 或 root uid (0) 下
-            if (callingUid != Process.myUid()
+            if (callingUid != android.os.Process.myUid()
                     && callingUid != 2000  // shell
                     && callingUid != 0) {  // root
                 Log.w(TAG, "Rejected call from uid: " + callingUid);
@@ -37,7 +36,7 @@ public class ShizukuShellService extends Service {
             }
 
             try {
-                Process process = Runtime.getRuntime().exec(
+                java.lang.Process process = Runtime.getRuntime().exec(
                         new String[]{"sh", "-c", command});
 
                 BufferedReader reader = new BufferedReader(

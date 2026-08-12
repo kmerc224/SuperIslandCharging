@@ -1,12 +1,10 @@
 package com.superisland.charging;
 
-import android.app.AppOpsManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Process;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -81,13 +79,6 @@ public class PermissionHelper {
      * 检查是否已加入电池优化白名单（不限制后台）
      */
     public static boolean isIgnoringBatteryOptimizations(Context context) {
-        AppOpsManager appOpsManager =
-                (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
-        int mode = appOpsManager.checkOpNoThrow(
-                AppOpsManager.OPSTR_POST_NOTIFICATIONS,
-                Process.myUid(),
-                context.getPackageName());
-        // 使用 PowerManager 检查更准确
         android.os.PowerManager pm =
                 (android.os.PowerManager) context.getSystemService(Context.POWER_SERVICE);
         return pm.isIgnoringBatteryOptimizations(context.getPackageName());
@@ -191,7 +182,7 @@ public class PermissionHelper {
         }
         // 尝试执行 su 命令
         try {
-            Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", "id"});
+            java.lang.Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", "id"});
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream()));
             String line = reader.readLine();
@@ -262,7 +253,7 @@ public class PermissionHelper {
      */
     public static String executeViaRoot(String command) {
         try {
-            Process process = Runtime.getRuntime().exec("su");
+            java.lang.Process process = Runtime.getRuntime().exec("su");
             DataOutputStream os = new DataOutputStream(process.getOutputStream());
             os.writeBytes(command + "\n");
             os.writeBytes("exit\n");
@@ -288,7 +279,7 @@ public class PermissionHelper {
      */
     private static String executeViaShell(String command) {
         try {
-            Process process = Runtime.getRuntime().exec(
+            java.lang.Process process = Runtime.getRuntime().exec(
                     new String[]{"sh", "-c", command});
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream()));

@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace 'com.superisland.charging'
-    compileSdk 36
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.superisland.charging"
         minSdk 35
-        targetSdk 36
+        targetSdk 35
         versionCode 1
         versionName "1.0"
     }

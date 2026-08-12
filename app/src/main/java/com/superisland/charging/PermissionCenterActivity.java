@@ -261,7 +261,7 @@ public class PermissionCenterActivity extends AppCompatActivity {
             AppOpsManager appOpsManager = getSystemService(AppOpsManager.class);
             if (appOpsManager != null) {
                 int mode = appOpsManager.unsafeCheckOpNoThrow(
-                        AppOpsManager.OPSTR_ACTIVE_WINDOW,
+                        "android:active_window",
                         android.os.Process.myUid(),
                         getPackageName());
                 return mode == AppOpsManager.MODE_ALLOWED;

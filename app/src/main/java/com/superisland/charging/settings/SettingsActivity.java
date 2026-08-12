@@ -5,10 +5,12 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.android.material.textview.MaterialTextView;
 import com.superisland.charging.PermissionCenterActivity;
 import com.superisland.charging.R;
 import com.superisland.charging.log.LogCapture;
@@ -26,6 +28,7 @@ import com.superisland.charging.log.LogCapture;
 public class SettingsActivity extends AppCompatActivity {
 
     private SwitchMaterial switchLauncherIcon;
+    private MaterialTextView tvUpdateInterval;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +39,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         setupToolbar();
         setupLauncherIconSwitch();
+        setupUpdateInterval();
         setupNavigationRows();
     }
 
@@ -102,6 +106,9 @@ public class SettingsActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // 更新速度
+        findViewById(R.id.row_update_interval).setOnClickListener(v -> showUpdateIntervalDialog());
+
         // 运行日志
         findViewById(R.id.row_log_viewer).setOnClickListener(v -> {
             LogCapture.getInstance().info("Settings", "Navigate to LogViewer");
@@ -115,5 +122,44 @@ public class SettingsActivity extends AppCompatActivity {
             Intent intent = new Intent(this, com.superisland.charging.AboutActivity.class);
             startActivity(intent);
         });
+    }
+
+    /**
+     * 初始化更新速度显示
+     */
+    private void setupUpdateInterval() {
+        tvUpdateInterval = findViewById(R.id.tv_update_interval);
+        updateIntervalDisplay();
+    }
+
+    /**
+     * 更新更新速度的显示文本
+     */
+    private void updateIntervalDisplay() {
+        int index = SettingsPreferences.getUpdateIntervalIndex(this);
+        tvUpdateInterval.setText(SettingsPreferences.UPDATE_INTERVAL_LABELS[index]);
+    }
+
+    /**
+     * 显示更新速度选择对话框
+     */
+    private void showUpdateIntervalDialog() {
+        int currentIndex = SettingsPreferences.getUpdateIntervalIndex(this);
+
+        new AlertDialog.Builder(this)
+                .setTitle("通知更新速度")
+                .setSingleChoiceItems(
+                        SettingsPreferences.UPDATE_INTERVAL_LABELS,
+                        currentIndex,
+                        (dialog, which) -> {
+                            long interval = SettingsPreferences.UPDATE_INTERVAL_OPTIONS[which];
+                            SettingsPreferences.setUpdateInterval(this, interval);
+                            updateIntervalDisplay();
+                            LogCapture.getInstance().info("Settings",
+                                    "Update interval changed to " + SettingsPreferences.UPDATE_INTERVAL_LABELS[which]);
+                            dialog.dismiss();
+                        })
+                .setNegativeButton("取消", null)
+                .show();
     }
 }

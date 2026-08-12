@@ -29,6 +29,9 @@ public class SettingsPreferences {
     // ==================== 超级岛 - 展开态 ====================
     private static final String KEY_EXPANDED_ITEMS_ORDER = "expanded_items_order";
 
+    // ==================== 更新速度 ====================
+    private static final String KEY_UPDATE_INTERVAL = "update_interval_ms";
+
     // 数据选项常量
     public static final String DATA_POWER = "power";
     public static final String DATA_TEMPERATURE = "temperature";
@@ -122,5 +125,35 @@ public class SettingsPreferences {
             sb.append(order.get(i));
         }
         getPrefs(context).edit().putString(KEY_EXPANDED_ITEMS_ORDER, sb.toString()).apply();
+    }
+
+    // ==================== 更新速度 ====================
+
+    /** 默认更新间隔 2000ms */
+    private static final long DEFAULT_UPDATE_INTERVAL_MS = 2000;
+
+    /** 可选的更新间隔选项（毫秒） */
+    public static final long[] UPDATE_INTERVAL_OPTIONS = {1000, 2000, 5000, 10000};
+
+    /** 更新间隔对应的显示名称 */
+    public static final String[] UPDATE_INTERVAL_LABELS = {"1秒", "2秒", "5秒", "10秒"};
+
+    public static long getUpdateInterval(Context context) {
+        return getPrefs(context).getLong(KEY_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL_MS);
+    }
+
+    public static void setUpdateInterval(Context context, long intervalMs) {
+        getPrefs(context).edit().putLong(KEY_UPDATE_INTERVAL, intervalMs).apply();
+    }
+
+    /**
+     * 获取当前更新间隔对应的选项索引
+     */
+    public static int getUpdateIntervalIndex(Context context) {
+        long current = getUpdateInterval(context);
+        for (int i = 0; i < UPDATE_INTERVAL_OPTIONS.length; i++) {
+            if (UPDATE_INTERVAL_OPTIONS[i] == current) return i;
+        }
+        return 1; // 默认 2秒
     }
 }

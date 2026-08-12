@@ -119,12 +119,13 @@ public class IslandNotificationHelper {
         NotificationManager notificationManager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        // 创建通知渠道
+        // 创建通知渠道（IMPORTANCE_MIN 确保无声音无振动，适合常驻通知）
         NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW);
+                CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_MIN);
         channel.setDescription("充电监控超级岛通知");
         channel.setShowBadge(false);
         channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+        channel.setBypassDnd(true);  // 允许绕过免打扰
         notificationManager.createNotificationChannel(channel);
 
         // 构建岛通知JSON参数
@@ -143,6 +144,7 @@ public class IslandNotificationHelper {
                 .setSmallIcon(Icon.createWithResource(context, R.drawable.ic_charging))
                 .setContentIntent(pendingIntent)
                 .setOngoing(true)
+                .setOnlyAlertOnce(true)
                 .setShowWhen(false);
 
         // 构建图片Bundle
@@ -283,33 +285,33 @@ public class IslandNotificationHelper {
 
             paramV2.put("param_island", paramIsland);
 
-            // === 焦点通知/展开态数据（支持自定义顺序） ===
+            // === 焦点通知/展开态数据 ===
+            // 第一行统一显示所有数据（按用户自定义顺序拼接）
             List<String> expandedOrder = SettingsPreferences.getExpandedItemsOrder(context);
 
-            JSONObject baseInfo = new JSONObject();
-            baseInfo.put("type", 2);
-
-            // 按用户设定的顺序映射到 title / subTitle / content / extraTitle
-            String[] textFields = {"title", "subTitle", "content", "extraTitle"};
-            for (int i = 0; i < Math.min(expandedOrder.size(), textFields.length); i++) {
+            // 拼接所有数据项为单行文本
+            StringBuilder firstLineBuilder = new StringBuilder();
+            for (int i = 0; i < expandedOrder.size(); i++) {
                 String key = expandedOrder.get(i);
                 String[] formatted = formatDataValue(key, currentMa, powerW,
                         temperature, batteryLevel, estimatedMinutes, isCharging);
-                // formatted: [label, value, unit]
-                String displayValue = formatted[1] + formatted[2];
-                baseInfo.put(textFields[i], displayValue);
-                if (i == 0) {
-                    baseInfo.put("colorTitle", "#4CAF50");
-                }
+                if (i > 0) firstLineBuilder.append("  ");
+                firstLineBuilder.append(formatted[1]).append(formatted[2]);
             }
+            String firstLineText = firstLineBuilder.toString();
 
-            baseInfo.put("showDivider", true);
-            baseInfo.put("showContentDivider", true);
+            JSONObject baseInfo = new JSONObject();
+            baseInfo.put("type", 1);  // type=1 表示单行文本布局
+            baseInfo.put("title", firstLineText);
+            baseInfo.put("colorTitle", "#4CAF50");
+
             paramV2.put("baseInfo", baseInfo);
 
-            // === 展开态底部进度条 ===
+            // === 展开态底部原生进度条（电量） ===
             JSONObject progressInfo = new JSONObject();
             progressInfo.put("progress", batteryLevel);
+            progressInfo.put("colorReach", "#4CAF50");
+            progressInfo.put("colorUnReach", "#E0E0E0");
             paramV2.put("progressInfo", progressInfo);
 
             // === 底部提示栏 ===
@@ -380,8 +382,10 @@ public class IslandNotificationHelper {
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
         NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW);
+                CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_MIN);
         channel.setDescription("充电监控通知");
+        channel.setShowBadge(false);
+        channel.setBypassDnd(true);
         notificationManager.createNotificationChannel(channel);
 
         Intent mainIntent = new Intent(context, MainActivity.class);
@@ -406,6 +410,7 @@ public class IslandNotificationHelper {
                 .setSmallIcon(Icon.createWithResource(context, R.drawable.ic_charging))
                 .setContentIntent(pendingIntent)
                 .setOngoing(true)
+                .setOnlyAlertOnce(true)
                 .setShowWhen(false)
                 .build();
     }

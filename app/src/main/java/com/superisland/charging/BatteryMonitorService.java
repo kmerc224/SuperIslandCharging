@@ -13,6 +13,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.superisland.charging.data.BatteryDatabase;
+import com.superisland.charging.settings.SettingsPreferences;
 
 /**
  * 电池监控前台服务
@@ -27,7 +28,6 @@ import com.superisland.charging.data.BatteryDatabase;
 public class BatteryMonitorService extends Service {
 
     private static final String TAG = "BatteryMonitor";
-    private static final long UPDATE_INTERVAL_MS = 2000;       // 通知更新间隔 2秒
     private static final long DB_RECORD_INTERVAL_MS = 30000;   // 数据库记录间隔 30秒
 
     public static final String ACTION_STOP = "com.superisland.charging.STOP";
@@ -119,6 +119,8 @@ public class BatteryMonitorService extends Service {
 
     /**
      * 启动定时更新
+     * <p>
+     * 更新间隔从 SettingsPreferences 读取，支持用户自定义
      */
     private void startPeriodicUpdate() {
         updateRunnable = new Runnable() {
@@ -130,7 +132,9 @@ public class BatteryMonitorService extends Service {
                 updateBatteryDataFromSystem();
                 postNotification();
 
-                handler.postDelayed(this, UPDATE_INTERVAL_MS);
+                // 从设置读取更新间隔
+                long interval = SettingsPreferences.getUpdateInterval(BatteryMonitorService.this);
+                handler.postDelayed(this, interval);
             }
         };
         handler.post(updateRunnable);

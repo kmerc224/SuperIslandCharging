@@ -13,5 +13,10 @@
         <item name="colorOnSurfaceVariant">@color/md_on_surface_variant</item>
         <item name="colorOutline">@color/md_on_surface_variant</item>
         <item name="colorOutlineVariant">#CAC5D4</item>
+        <!-- 状态栏和导航栏颜色 -->
+        <item name="android:statusBarColor">@color/md_surface</item>
+        <item name="android:navigationBarColor">@color/md_surface</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
     </style>
 </resources>

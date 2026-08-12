@@ -214,65 +214,76 @@ public class PermissionCenterActivity extends AppCompatActivity {
      * 刷新所有权限的显示状态
      */
     private void refreshAllPermissionStatus() {
-        // 通知权限
-        boolean hasNotification = PermissionHelper.hasNotificationPermission(this);
-        updateCardStatus(cardNotification, tvNotificationStatus,
-                hasNotification,
-                hasNotification ? "已授予" : "未授予");
+        try {
+            // 通知权限
+            boolean hasNotification = PermissionHelper.hasNotificationPermission(this);
+            updateCardStatus(cardNotification, tvNotificationStatus,
+                    hasNotification,
+                    hasNotification ? "已授予" : "未授予");
 
-        // 电池优化白名单
-        boolean isBatteryWhitelisted = PermissionHelper.isIgnoringBatteryOptimizations(this);
-        updateCardStatus(cardBatteryOptimization, tvBatteryOptimizationStatus,
-                isBatteryWhitelisted,
-                isBatteryWhitelisted ? "已加入白名单" : "未加入白名单");
+            // 电池优化白名单
+            boolean isBatteryWhitelisted = PermissionHelper.isIgnoringBatteryOptimizations(this);
+            updateCardStatus(cardBatteryOptimization, tvBatteryOptimizationStatus,
+                    isBatteryWhitelisted,
+                    isBatteryWhitelisted ? "已加入白名单" : "未加入白名单");
 
-        // 无限制后台 - 通过 AppOpsManager 检查
-        boolean isUnrestricted = isUnrestrictedBackground();
-        updateCardStatus(cardUnrestrictedBg, tvUnrestrictedBgStatus,
-                isUnrestricted,
-                isUnrestricted ? "已设置" : "未设置");
+            // 无限制后台 - 通过 AppOpsManager 检查
+            boolean isUnrestricted = isUnrestrictedBackground();
+            updateCardStatus(cardUnrestrictedBg, tvUnrestrictedBgStatus,
+                    isUnrestricted,
+                    isUnrestricted ? "已设置" : "未设置");
 
-        // Shizuku
-        boolean shizukuAvailable = PermissionHelper.isShizukuAvailable();
-        boolean shizukuAuthorized = PermissionHelper.isShizukuAuthorized();
-        if (!shizukuAvailable) {
-            updateCardStatus(cardShizuku, tvShizukuStatus,
-                    false, "Shizuku 未安装");
-        } else if (shizukuAuthorized) {
-            updateCardStatus(cardShizuku, tvShizukuStatus,
-                    true, "已授权");
-        } else {
-            updateCardStatus(cardShizuku, tvShizukuStatus,
-                    false, "未授权");
+            // Shizuku
+            boolean shizukuAvailable = PermissionHelper.isShizukuAvailable();
+            boolean shizukuAuthorized = PermissionHelper.isShizukuAuthorized();
+            if (!shizukuAvailable) {
+                updateCardStatus(cardShizuku, tvShizukuStatus,
+                        false, "Shizuku 未安装");
+            } else if (shizukuAuthorized) {
+                updateCardStatus(cardShizuku, tvShizukuStatus,
+                        true, "已授权");
+            } else {
+                updateCardStatus(cardShizuku, tvShizukuStatus,
+                        false, "未授权");
+            }
+
+            // Root
+            boolean rootAvailable = PermissionHelper.isRootAvailable();
+            updateCardStatus(cardRoot, tvRootStatus,
+                    rootAvailable,
+                    rootAvailable ? "可用" : "不可用");
+        } catch (Exception e) {
+            LogCapture.getInstance().error("PermissionCenter",
+                    "refreshAllPermissionStatus failed: " + e.getMessage());
         }
-
-        // Root
-        boolean rootAvailable = PermissionHelper.isRootAvailable();
-        updateCardStatus(cardRoot, tvRootStatus,
-                rootAvailable,
-                rootAvailable ? "可用" : "不可用");
     }
 
     /**
      * 检查是否已设置无限制后台
      */
     private boolean isUnrestrictedBackground() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            AppOpsManager appOpsManager = getSystemService(AppOpsManager.class);
-            if (appOpsManager != null) {
-                int mode = appOpsManager.unsafeCheckOpNoThrow(
-                        "android:active_window",
-                        android.os.Process.myUid(),
-                        getPackageName());
-                return mode == AppOpsManager.MODE_ALLOWED;
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                AppOpsManager appOpsManager = getSystemService(AppOpsManager.class);
+                if (appOpsManager != null) {
+                    int mode = appOpsManager.unsafeCheckOpNoThrow(
+                            "android:active_window",
+                            android.os.Process.myUid(),
+                            getPackageName());
+                    return mode == AppOpsManager.MODE_ALLOWED;
+                }
             }
+            // 低版本通过 PowerManager 检查
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                return pm.isIgnoringBatteryOptimizations(getPackageName());
+            }
+            return true;
+        } catch (Exception e) {
+            LogCapture.getInstance().warn("PermissionCenter",
+                    "isUnrestrictedBackground check failed: " + e.getMessage());
+            return false;
         }
-        // 低版本通过 PowerManager 检查
-        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return pm.isIgnoringBatteryOptimizations(getPackageName());
-        }
-        return true;
     }
 
     /**
@@ -285,14 +296,19 @@ public class PermissionCenterActivity extends AppCompatActivity {
      */
     private void updateCardStatus(MaterialCardView card, MaterialTextView statusText,
                                   boolean granted, String status) {
-        statusText.setText(status);
-        if (granted) {
-            card.setStrokeColor(GRANTED_STROKE_COLOR);
-            statusText.setTextColor(GRANTED_STROKE_COLOR);
-        } else {
-            // 使用主题默认 outline 颜色
-            card.setStrokeColor(getThemeColor(com.google.android.material.R.attr.colorOutline));
-            statusText.setTextColor(getThemeColor(com.google.android.material.R.attr.colorOnSurfaceVariant));
+        try {
+            statusText.setText(status);
+            if (granted) {
+                card.setStrokeColor(GRANTED_STROKE_COLOR);
+                statusText.setTextColor(GRANTED_STROKE_COLOR);
+            } else {
+                // 使用主题默认 outline 颜色
+                card.setStrokeColor(getThemeColor(com.google.android.material.R.attr.colorOutline));
+                statusText.setTextColor(getThemeColor(com.google.android.material.R.attr.colorOnSurfaceVariant));
+            }
+        } catch (Exception e) {
+            LogCapture.getInstance().warn("PermissionCenter",
+                    "updateCardStatus failed: " + e.getMessage());
         }
     }
 
@@ -300,8 +316,12 @@ public class PermissionCenterActivity extends AppCompatActivity {
      * 从当前主题获取颜色值
      */
     private int getThemeColor(int attr) {
-        android.util.TypedValue typedValue = new android.util.TypedValue();
-        getTheme().resolveAttribute(attr, typedValue, true);
-        return typedValue.data;
+        try {
+            android.util.TypedValue typedValue = new android.util.TypedValue();
+            getTheme().resolveAttribute(attr, typedValue, true);
+            return typedValue.data;
+        } catch (Exception e) {
+            return Color.GRAY; // 默认灰色
+        }
     }
 }

@@ -24,8 +24,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 
-import rikka.shizuku.Shizuku;
-import rikka.shizuku.Shizuku.OnRequestPermissionResultListener;
+// Shizuku API 通过反射调用，避免编译时依赖问题
 
 /**
  * 首次使用设置向导
@@ -97,21 +96,8 @@ public class SetupWizardActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> batteryOptimizationLauncher;
     private ActivityResultLauncher<Intent> appDetailSettingsLauncher;
 
-    // Shizuku 权限结果监听器
-    private final OnRequestPermissionResultListener shizukuPermissionListener =
-            (requestCode, grantResult) -> {
-                if (requestCode == REQUEST_SHIZUKU_PERMISSION) {
-                    shizukuAuthorized = (grantResult == PackageManager.PERMISSION_GRANTED);
-                    if (shizukuAuthorized) {
-                        selectedElevatedMode = PermissionHelper.MODE_SHIZUKU;
-                        PermissionHelper.setElevatedMode(SetupWizardActivity.this,
-                                PermissionHelper.MODE_SHIZUKU);
-                        // 授权成功后自动进入下一步
-                        showStep(5);
-                    }
-                    refreshElevatedUI();
-                }
-            };
+    // Shizuku 权限结果监听器（通过反射代理实现）
+    private Object shizukuPermissionListener = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,9 +109,32 @@ public class SetupWizardActivity extends AppCompatActivity {
         detectElevatedPermissions();
         showStep(1);
 
-        // 注册 Shizuku 权限结果监听器
+        // 注册 Shizuku 权限结果监听器（反射方式）
         try {
-            Shizuku.addOnRequestPermissionResultListener(shizukuPermissionListener);
+            Class<?> listenerClass = Class.forName("rikka.shizuku.Shizuku$OnRequestPermissionResultListener");
+            shizukuPermissionListener = java.lang.reflect.Proxy.newProxyInstance(
+                    listenerClass.getClassLoader(),
+                    new Class<?>[]{listenerClass},
+                    (proxy, method, args) -> {
+                        if ("onRequestPermissionResult".equals(method.getName()) && args != null && args.length == 2) {
+                            int requestCode = (int) args[0];
+                            int grantResult = (int) args[1];
+                            if (requestCode == REQUEST_SHIZUKU_PERMISSION) {
+                                shizukuAuthorized = (grantResult == PackageManager.PERMISSION_GRANTED);
+                                if (shizukuAuthorized) {
+                                    selectedElevatedMode = PermissionHelper.MODE_SHIZUKU;
+                                    PermissionHelper.setElevatedMode(SetupWizardActivity.this,
+                                            PermissionHelper.MODE_SHIZUKU);
+                                    showStep(5);
+                                }
+                                refreshElevatedUI();
+                            }
+                        }
+                        return null;
+                    });
+            Class<?> shizukuClass = Class.forName("rikka.shizuku.Shizuku");
+            shizukuClass.getMethod("addOnRequestPermissionResultListener", listenerClass)
+                    .invoke(null, shizukuPermissionListener);
         } catch (Exception e) {
             // Shizuku 不可用时忽略
         }
@@ -141,7 +150,12 @@ public class SetupWizardActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         try {
-            Shizuku.removeOnRequestPermissionResultListener(shizukuPermissionListener);
+            if (shizukuPermissionListener != null) {
+                Class<?> shizukuClass = Class.forName("rikka.shizuku.Shizuku");
+                Class<?> listenerClass = Class.forName("rikka.shizuku.Shizuku$OnRequestPermissionResultListener");
+                shizukuClass.getMethod("removeOnRequestPermissionResultListener", listenerClass)
+                        .invoke(null, shizukuPermissionListener);
+            }
         } catch (Exception e) {
             // ignore
         }
@@ -384,10 +398,12 @@ public class SetupWizardActivity extends AppCompatActivity {
         // 检测 Shizuku
         new Thread(() -> {
             try {
-                shizukuAvailable = Shizuku.pingBinder();
+                Class<?> shizukuClass = Class.forName("rikka.shizuku.Shizuku");
+                Object pingResult = shizukuClass.getMethod("pingBinder").invoke(null);
+                shizukuAvailable = (pingResult instanceof Boolean) && (Boolean) pingResult;
                 if (shizukuAvailable) {
-                    shizukuAuthorized = Shizuku.checkSelfPermission()
-                            == PackageManager.PERMISSION_GRANTED;
+                    Object permResult = shizukuClass.getMethod("checkSelfPermission").invoke(null);
+                    shizukuAuthorized = (permResult instanceof Integer) && ((Integer) permResult == 0);
                 }
             } catch (Exception e) {
                 shizukuAvailable = false;
@@ -450,7 +466,9 @@ public class SetupWizardActivity extends AppCompatActivity {
 
         // 检查是否已授权
         try {
-            if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
+            Class<?> shizukuClass = Class.forName("rikka.shizuku.Shizuku");
+            Object permResult = shizukuClass.getMethod("checkSelfPermission").invoke(null);
+            if ((permResult instanceof Integer) && ((Integer) permResult == 0)) {
                 shizukuAuthorized = true;
                 selectedElevatedMode = PermissionHelper.MODE_SHIZUKU;
                 PermissionHelper.setElevatedMode(this, PermissionHelper.MODE_SHIZUKU);
@@ -459,13 +477,14 @@ public class SetupWizardActivity extends AppCompatActivity {
                 return;
             }
 
-            if (Shizuku.shouldShowRequestPermissionRationale()) {
+            Object rationaleResult = shizukuClass.getMethod("shouldShowRequestPermissionRationale").invoke(null);
+            if ((rationaleResult instanceof Boolean) && (Boolean) rationaleResult) {
                 // 用户之前拒绝过，显示说明
                 tvShizukuStatus.setText("请在 Shizuku 中允许授权请求");
             }
 
             // 请求 Shizuku 授权
-            Shizuku.requestPermission(REQUEST_SHIZUKU_PERMISSION);
+            shizukuClass.getMethod("requestPermission", int.class).invoke(null, REQUEST_SHIZUKU_PERMISSION);
         } catch (Exception e) {
             tvShizukuStatus.setText("授权请求失败: " + e.getMessage());
         }

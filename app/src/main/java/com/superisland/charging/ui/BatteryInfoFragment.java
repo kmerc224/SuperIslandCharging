@@ -99,7 +99,7 @@ public class BatteryInfoFragment extends Fragment {
     }
 
     private void setupListeners() {
-        view.findViewById(R.id.btn_set_factory_capacity).setOnClickListener(v -> showSetCapacityDialog());
+        requireView().findViewById(R.id.btn_set_factory_capacity).setOnClickListener(v -> showSetCapacityDialog());
     }
 
     private void registerBatteryReceiver() {

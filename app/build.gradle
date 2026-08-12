@@ -37,10 +37,8 @@ dependencies {
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
 
-    // Shizuku API（用于ADB权限执行命令）
-    def shizuku_version = "13.1.5"
-    implementation "dev.rikka.shizuku:api:${shizuku_version}"
-    implementation "dev.rikka.shizuku:provider:${shizuku_version}"
+    // Shizuku API 通过反射调用，不需要编译时依赖
+    // 运行时由 Shizuku 应用提供
 
     // MPAndroidChart（折线图）
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'

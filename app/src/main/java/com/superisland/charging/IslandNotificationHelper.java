@@ -143,8 +143,7 @@ public class IslandNotificationHelper {
                 .setSmallIcon(Icon.createWithResource(context, R.drawable.ic_charging))
                 .setContentIntent(pendingIntent)
                 .setOngoing(true)
-                .setShowWhen(false)
-                .setSilent(true);
+                .setShowWhen(false);
 
         // 构建图片Bundle
         Bundle pics = new Bundle();
@@ -414,7 +413,6 @@ public class IslandNotificationHelper {
                 .setContentIntent(pendingIntent)
                 .setOngoing(true)
                 .setShowWhen(false)
-                .setSilent(true)
                 .build();
     }
 }

@@ -1,0 +1,23 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        // Shizuku Maven 仓库
+        maven { url 'https://maven.rikka.dev/releases' }
+        // JitPack (MPAndroidChart)
+        maven { url 'https://jitpack.io' }
+    }
+}
+
+rootProject.name = "SuperIslandCharging"
+include ':app'

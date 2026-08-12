@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- 前台服务权限 (Android 9+) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- 特殊用途前台服务权限 (Android 15+) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- 通知权限 (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 电池统计权限 -->
+    <uses-permission android:name="android.permission.BATTERY_STATS"
+        tools:ignore="ProtectedPermissions" />
+    <!-- 开机自启 -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- 网络权限（检查更新） -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.SuperIslandCharging">
+
+        <!-- 主界面（不直接暴露为启动器入口，通过 activity-alias 控制） -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true" />
+
+        <!-- 启动器入口别名（可通过设置开关启用/禁用） -->
+        <activity-alias
+            android:name=".LauncherAlias"
+            android:targetActivity=".MainActivity"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- 设置向导 -->
+        <activity
+            android:name=".SetupWizardActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SuperIslandCharging" />
+
+        <!-- 设置页面 -->
+        <activity
+            android:name=".settings.SettingsActivity"
+            android:exported="false"
+            android:label="设置"
+            android:theme="@style/Theme.SuperIslandCharging" />
+
+        <!-- 权限中心 -->
+        <activity
+            android:name=".PermissionCenterActivity"
+            android:exported="false"
+            android:label="权限中心"
+            android:theme="@style/Theme.SuperIslandCharging" />
+
+        <!-- 超级岛自定义 -->
+        <activity
+            android:name=".settings.IslandCustomizationActivity"
+            android:exported="false"
+            android:label="超级岛自定义"
+            android:theme="@style/Theme.SuperIslandCharging" />
+
+        <!-- 运行日志 -->
+        <activity
+            android:name=".LogViewerActivity"
+            android:exported="false"
+            android:label="运行日志"
+            android:theme="@style/Theme.SuperIslandCharging" />
+
+        <!-- 关于 -->
+        <activity
+            android:name=".AboutActivity"
+            android:exported="false"
+            android:label="关于"
+            android:theme="@style/Theme.SuperIslandCharging" />
+
+        <!-- 电池监控前台服务 -->
+        <service
+            android:name=".BatteryMonitorService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Battery charging monitor for Super Island notification" />
+        </service>
+
+        <!-- Shizuku 用户服务（以 Shell/ADB 权限执行命令） -->
+        <service
+            android:name=".ShizukuShellService"
+            android:exported="true"
+            tools:ignore="ExportedService">
+            <intent-filter>
+                <action android:name="moe.shizuku.bind" />
+            </intent-filter>
+        </service>
+
+        <!-- Shizuku 入口点声明 -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:enabled="true"
+            android:exported="true"
+            android:multiprocess="false"
+            tools:ignore="ExportedContentProvider" />
+
+        <meta-data
+            android:name="moe.shizuku.client.V3_SUPPORT"
+            android:value="true" />
+
+        <!-- 开机自启广播接收器 -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- MD3 主题色 -->
+    <color name="md_primary">#FF1B6B10</color>
+    <color name="md_on_primary">#FFFFFFFF</color>
+    <color name="md_primary_container">#FFA0E891</color>
+    <color name="md_on_primary_container">#FF002200</color>
+    <color name="md_secondary">#FF52634F</color>
+    <color name="md_on_secondary">#FFFFFFFF</color>
+    <color name="md_surface">#FFF8FAF0</color>
+    <color name="md_on_surface">#FF1A1C18</color>
+    <color name="md_on_surface_variant">#FF44483D</color>
+
+    <!-- 充电相关颜色 -->
+    <color name="charging_green">#FF4CAF50</color>
+    <color name="charging_green_light">#FF81C784</color>
+    <color name="charging_orange">#FFFF9800</color>
+    <color name="charging_red">#FFF44336</color>
+    <color name="progress_background">#FF424242</color>
+</resources>

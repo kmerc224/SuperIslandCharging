@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">超级岛充电监控</string>
+    <string name="channel_name">充电监控</string>
+    <string name="notification_title_charging">充电中</string>
+    <string name="notification_title_monitor">电池监控</string>
+    <string name="btn_start">启动监控</string>
+    <string name="btn_stop">停止监控</string>
+    <string name="info_island_supported">当前设备支持超级岛</string>
+    <string name="info_island_not_supported">当前设备不支持超级岛</string>
+</resources>

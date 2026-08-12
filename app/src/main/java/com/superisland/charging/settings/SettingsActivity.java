@@ -22,7 +22,7 @@ import com.superisland.charging.log.LogCapture;
  * - 桌面图标显示开关
  * - 权限中心入口
  * - 超级岛自定义入口
- * - 运行日志入口
+ * - 通知更新速度设置
  * - 关于页面入口
  */
 public class SettingsActivity extends AppCompatActivity {
@@ -108,13 +108,6 @@ public class SettingsActivity extends AppCompatActivity {
 
         // 更新速度
         findViewById(R.id.row_update_interval).setOnClickListener(v -> showUpdateIntervalDialog());
-
-        // 运行日志
-        findViewById(R.id.row_log_viewer).setOnClickListener(v -> {
-            LogCapture.getInstance().info("Settings", "Navigate to LogViewer");
-            Intent intent = new Intent(this, com.superisland.charging.LogViewerActivity.class);
-            startActivity(intent);
-        });
 
         // 关于
         findViewById(R.id.row_about).setOnClickListener(v -> {

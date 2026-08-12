@@ -1,13 +1,10 @@
 package com.superisland.charging;
 
-import android.app.AppOpsManager;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.PowerManager;
 import android.provider.Settings;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -260,25 +257,12 @@ public class PermissionCenterActivity extends AppCompatActivity {
 
     /**
      * 检查是否已设置无限制后台
+     * 简化版本：直接通过电池优化白名单判断
      */
     private boolean isUnrestrictedBackground() {
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                AppOpsManager appOpsManager = getSystemService(AppOpsManager.class);
-                if (appOpsManager != null) {
-                    int mode = appOpsManager.unsafeCheckOpNoThrow(
-                            "android:active_window",
-                            android.os.Process.myUid(),
-                            getPackageName());
-                    return mode == AppOpsManager.MODE_ALLOWED;
-                }
-            }
-            // 低版本通过 PowerManager 检查
-            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                return pm.isIgnoringBatteryOptimizations(getPackageName());
-            }
-            return true;
+            // 通过电池优化白名单来判断（更兼容）
+            return PermissionHelper.isIgnoringBatteryOptimizations(this);
         } catch (Exception e) {
             LogCapture.getInstance().warn("PermissionCenter",
                     "isUnrestrictedBackground check failed: " + e.getMessage());

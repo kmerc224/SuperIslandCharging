@@ -236,7 +236,8 @@ public class BatteryMonitorService extends Service {
 
         // 电量百分比
         int chargeCounter = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
-        int chargeFull = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_FULL);
+        // BATTERY_PROPERTY_CHARGE_FULL = 4 (API 21+)
+        int chargeFull = bm.getIntProperty(4);
         if (chargeFull > 0 && chargeCounter >= 0) {
             batteryLevel = (int) ((chargeCounter * 100L) / chargeFull);
             batteryLevel = Math.max(0, Math.min(100, batteryLevel));
@@ -279,8 +280,8 @@ public class BatteryMonitorService extends Service {
         isCharging = (status == BatteryManager.BATTERY_STATUS_CHARGING
                 || status == BatteryManager.BATTERY_STATUS_FULL);
 
-        // 电流
-        int currentNow = batteryStatus.getIntExtra(BatteryManager.EXTRA_CURRENT, 0);
+        // 电流 (EXTRA_CURRENT = "current" API 21+)
+        int currentNow = batteryStatus.getIntExtra("current", 0);
         currentMa = Math.abs(currentNow) / 1000f;
 
         // 电压 (毫伏转伏) — 缓存到类字段供定时轮询使用
@@ -302,7 +303,7 @@ public class BatteryMonitorService extends Service {
         // 预计充满时间
         BatteryManager bm = (BatteryManager) getSystemService(BATTERY_SERVICE);
         if (bm != null && isCharging && currentMa > 0) {
-            int capacity = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_FULL);
+            int capacity = bm.getIntProperty(4); // BATTERY_PROPERTY_CHARGE_FULL
             int chargeCounter = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
             if (capacity > 0 && chargeCounter >= 0) {
                 int remainingMah = capacity - chargeCounter;

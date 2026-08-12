@@ -150,8 +150,8 @@ public class BatteryInfoFragment extends Fragment {
             chipStatus.setText("放电中");
         }
 
-        // 电流
-        int currentNow = batteryStatus.getIntExtra(BatteryManager.EXTRA_CURRENT, 0);
+        // 电流 (EXTRA_CURRENT = "current" API 21+)
+        int currentNow = batteryStatus.getIntExtra("current", 0);
         tvCurrent.setText(String.format("%.0f", Math.abs(currentNow) / 1000f));
 
         // 电压
@@ -236,7 +236,7 @@ public class BatteryInfoFragment extends Fragment {
             // 暂时使用简单估算
             int currentNow = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW);
             int chargeCounter = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
-            int chargeFull = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_FULL);
+            int chargeFull = bm.getIntProperty(4); // BATTERY_PROPERTY_CHARGE_FULL
             int status = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_STATUS);
 
             if (status == BatteryManager.BATTERY_STATUS_CHARGING

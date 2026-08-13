@@ -55,9 +55,9 @@ public class BatteryMonitorService extends Service {
     private float lastNotifiedPowerW = -1f;
     private int lastNotifiedBatteryLevel = -1;
     private float lastNotifiedTemperature = -1f;
-    private static final float POWER_CHANGE_THRESHOLD = 0.5f;  // 功率变化阈值 (W)
+    private static final float POWER_CHANGE_THRESHOLD = 1.0f;  // 功率变化阈值 (W) - 提高阈值减少更新
     private static final int BATTERY_CHANGE_THRESHOLD = 1;     // 电量变化阈值 (%)
-    private static final float TEMP_CHANGE_THRESHOLD = 0.5f;   // 温度变化阈值 (°C)
+    private static final float TEMP_CHANGE_THRESHOLD = 1.0f;   // 温度变化阈值 (°C) - 提高阈值减少更新
 
     @Override
     public void onCreate() {

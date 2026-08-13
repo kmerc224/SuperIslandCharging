@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -37,6 +38,9 @@ public class MainActivity extends AppCompatActivity {
             finish();
             return;
         }
+
+        // 禁用边缘到边缘显示，让系统处理状态栏和导航栏的内边距
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
 
         setContentView(R.layout.activity_main);
 

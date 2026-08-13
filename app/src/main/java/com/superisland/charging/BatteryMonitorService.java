@@ -50,6 +50,14 @@ public class BatteryMonitorService extends Service {
     private int batteryLevel = 0;
     private int estimatedMinutes = -1;
     private boolean isCharging = false;
+    
+    // 上次通知的数据（用于变化检测）
+    private float lastNotifiedPowerW = -1f;
+    private int lastNotifiedBatteryLevel = -1;
+    private float lastNotifiedTemperature = -1f;
+    private static final float POWER_CHANGE_THRESHOLD = 0.5f;  // 功率变化阈值 (W)
+    private static final int BATTERY_CHANGE_THRESHOLD = 1;     // 电量变化阈值 (%)
+    private static final float TEMP_CHANGE_THRESHOLD = 0.5f;   // 温度变化阈值 (°C)
 
     @Override
     public void onCreate() {
@@ -324,8 +332,17 @@ public class BatteryMonitorService extends Service {
 
     /**
      * 发送/更新通知
+     * 只在数据有显著变化时更新，避免超级岛频繁展开
      */
     private void postNotification() {
+        // 检查数据是否有显著变化
+        boolean shouldUpdate = shouldUpdateNotification();
+        
+        if (!shouldUpdate && lastNotifiedBatteryLevel >= 0) {
+            // 数据变化不大，跳过更新
+            return;
+        }
+        
         Notification notification;
 
         // 检测是否支持超级岛
@@ -341,6 +358,11 @@ public class BatteryMonitorService extends Service {
         }
 
         startForeground(IslandNotificationHelper.NOTIFICATION_ID, notification);
+        
+        // 更新上次通知的数据
+        lastNotifiedPowerW = powerW;
+        lastNotifiedBatteryLevel = batteryLevel;
+        lastNotifiedTemperature = temperature;
 
         // 定时写入数据库（每30秒记录一次，避免数据过多）
         long now = System.currentTimeMillis();
@@ -348,6 +370,39 @@ public class BatteryMonitorService extends Service {
             lastDbRecordTime = now;
             recordToDatabase();
         }
+    }
+    
+    /**
+     * 判断是否需要更新通知
+     * 只有当数据变化超过阈值时才更新，避免超级岛频繁展开
+     */
+    private boolean shouldUpdateNotification() {
+        // 首次更新
+        if (lastNotifiedBatteryLevel < 0) {
+            return true;
+        }
+        
+        // 充电状态变化
+        if (isCharging != (lastNotifiedPowerW > 0)) {
+            return true;
+        }
+        
+        // 电量变化超过阈值
+        if (Math.abs(batteryLevel - lastNotifiedBatteryLevel) >= BATTERY_CHANGE_THRESHOLD) {
+            return true;
+        }
+        
+        // 功率变化超过阈值
+        if (Math.abs(powerW - lastNotifiedPowerW) >= POWER_CHANGE_THRESHOLD) {
+            return true;
+        }
+        
+        // 温度变化超过阈值
+        if (Math.abs(temperature - lastNotifiedTemperature) >= TEMP_CHANGE_THRESHOLD) {
+            return true;
+        }
+        
+        return false;
     }
 
     /**
@@ -371,10 +426,22 @@ public class BatteryMonitorService extends Service {
 
     /**
      * 启动前台服务通知（初始）
+     * 立即使用超级岛通知，避免延迟
      */
     private void startForegroundNotification() {
-        Notification notification = IslandNotificationHelper.buildFallbackNotification(
-                this, 0, 0, 0, 0, -1, false);
+        // 检测是否支持超级岛
+        int protocolVersion = IslandNotificationHelper.getFocusProtocolVersion(this);
+        Notification notification;
+        
+        if (protocolVersion >= 3 && IslandNotificationHelper.isSupportIsland(this)) {
+            // 立即使用超级岛通知
+            notification = IslandNotificationHelper.buildIslandNotification(
+                    this, 0, 0, 0, 0, -1, false);
+        } else {
+            notification = IslandNotificationHelper.buildFallbackNotification(
+                    this, 0, 0, 0, 0, -1, false);
+        }
+        
         startForeground(IslandNotificationHelper.NOTIFICATION_ID, notification);
     }
 }

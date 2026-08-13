@@ -300,19 +300,22 @@ public class IslandNotificationHelper {
             }
             String firstLineText = firstLineBuilder.toString();
 
+            // === 展开态基础信息（包含进度条） ===
             JSONObject baseInfo = new JSONObject();
             baseInfo.put("type", 1);  // type=1 表示单行文本布局
             baseInfo.put("title", firstLineText);
             baseInfo.put("colorTitle", "#4CAF50");
-
-            paramV2.put("baseInfo", baseInfo);
-
-            // === 展开态底部原生进度条（电量） ===
+            
+            // 展开态底部原生进度条（电量）- 集成在baseInfo中
             JSONObject progressInfo = new JSONObject();
             progressInfo.put("progress", batteryLevel);
+            progressInfo.put("maxProgress", 100);
             progressInfo.put("colorReach", "#4CAF50");
             progressInfo.put("colorUnReach", "#E0E0E0");
-            paramV2.put("progressInfo", progressInfo);
+            progressInfo.put("showProgress", true);
+            baseInfo.put("progressInfo", progressInfo);
+
+            paramV2.put("baseInfo", baseInfo);
 
             // === 底部提示栏 ===
             JSONObject hintInfo = new JSONObject();
